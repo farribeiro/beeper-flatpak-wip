@@ -1,68 +1,60 @@
-app-id: com.beeper.Beeper
+id: com.beeper.Beeper
 runtime: org.freedesktop.Platform
 runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
 base: org.electronjs.Electron2.BaseApp
 base-version: '25.08'
-command: beeper
-rename-icon: beeper
+command: beepertexts
 finish-args:
   - --device=dri
+  - --filesystem=xdg-download
+  - --filesystem=xdg-pictures:ro
+  - --filesystem=xdg-videos:ro
   - --share=ipc
   - --share=network
   - --socket=fallback-x11
-  - --socket=wayland
   - --socket=pulseaudio
-  - --socket=system-bus
+  - --socket=wayland
   - --talk-name=org.freedesktop.Notifications
-  - --env=BEEPER_USE_WAYLAND=0
 modules:
+  - shared-modules/libappindicator/libappindicator-gtk3-12.10.json
   - shared-modules/libsecret/libsecret.json
-
-  - name: beeper
+  - shared-modules/squashfs-tools/squashfs-tools.json
+  - name: beepertexts
     buildsystem: simple
-    build-commands:
-      - chmod +x Beeper.AppImage
-      - ./Beeper.AppImage --appimage-extract
-      - rm Beeper.AppImage
-
-      - desktop-file-edit --set-icon ${FLATPAK_ID} --set-key Exec --set-value 'beeper
-        %u' squashfs-root/beeper.desktop
-      - install -Dm644 squashfs-root/beeper.desktop ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop
-
-      - install -Dm755 beeper.sh ${FLATPAK_DEST}/bin/beeper
-      - install -Dm644 com.beeper.Beeper.metainfo.xml ${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.metainfo.xml
-
-      - mkdir -p ${FLATPAK_DEST}/share/icons/hicolor
-      - cp -r squashfs-root/usr/share/icons/hicolor/* ${FLATPAK_DEST}/share/icons/hicolor
-      # flatpak doesn't support icons larger than 512x512
-      - rm -rf ${FLATPAK_DEST}/share/icons/hicolor/1024x1024
-
-      - rm -rf squashfs-root/resources/icons/win
-
-      - mv squashfs-root ${FLATPAK_DEST}/beeper
-
-      # To allow separate locales
-      # https://searchfox.org/mozilla-central/rev/8a4f55bc09ffc5c25dcb4586c51ae4a9fee77b4c/taskcluster/docker/firefox-flatpak/runme.sh#131-133
-      - |
-        for lang in ${FLATPAK_DEST}/beeper/locales/*.pak
-        do
-          locale="$(basename -s .pak $lang)"
-          install -Dm644 -t "${FLATPAK_DEST}/share/runtime/locale/${locale%%-*}/" "$lang"
-          ln -sf "${FLATPAK_DEST}/share/runtime/locale/${locale%%-*}/$(basename $lang)" "${FLATPAK_DEST}/beeper/locales/$(basename $lang)"
-        done
     sources:
-      - type: file
-        only-arches: [x86_64]
-        url: https://download.beeper.com/versions/3.77.21/linux/appImage/x64
-        sha512: cd070a6561714db5c12a1306a1e222c7e215aaadc7fbf40050fdc7b71bf5313a1eb704f0bb0efecd9200fec1c2c96e010a5503f8a71d54eb90b39385ffc0617d
-        dest_filename: Beeper.AppImage
+      - type: script
+        dest-filename: beepertexts
+        commands:
+          - zypak-wrapper /app/extra/beepertexts/beepertexts "$@"
+      - type: extra-data
+        only-arches:
+          - x86_64
+        url: https://beeper-desktop.download.beeper.com/builds/Beeper-4.2.808-x86_64.AppImage
+        sha256: aa5e5690a5604222881e434a77cd39c457b3b2fa16fbc76a5f1e8ccdfb3171e3
+        size: 236292417
+        filename: Beeper.AppImage
         x-checker-data:
-          type: electron-updater
-          url: https://download.todesktop.com/2003241lzgn20jd/latest-linux.yml
-          url-template: https://download.beeper.com/versions/$version/linux/appImage/x64
-      - type: file
-        path: beeper.sh
-
+          type: rotating-url
+          url: https://api.beeper.com/desktop/download/linux/x64/stable/com.automattic.beeper.desktop
       - type: file
         path: com.beeper.Beeper.metainfo.xml
+      - type: file
+        path: icons/com.beeper.Beeper.png
+      - type: file
+        path: com.beeper.Beeper.desktop
+      - type: script
+        dest_filename: apply_extra.sh
+        commands:
+          - chmod +x Beeper.AppImage
+          - "offset=$(grep -aob -- 'hsqs' Beeper.AppImage | tail -n1 | cut -d: -f1)"
+          - unsquashfs -quiet -no-progress -o $offset Beeper.AppImage
+          - mv squashfs-root/* .
+          - rm -rf Beeper.AppImage squashfs-root
+    build-commands:
+      - install -Dm755 apply_extra.sh ${FLATPAK_DEST}/bin/apply_extra
+      - install -Dm644 ${FLATPAK_ID}.desktop -t ${FLATPAK_DEST}/share/applications
+      - install -Dm644 ${FLATPAK_ID}.metainfo.xml -t ${FLATPAK_DEST}/share/metainfo/
+      - install -Dm644 ${FLATPAK_ID}.png -t ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps
+      - install -Dm755 beepertexts -t ${FLATPAK_DEST}/bin 
+      - ln -s ${FLATPAK_DEST}/bin/beepertexts ${FLATPAK_DEST}/bin/beeper
