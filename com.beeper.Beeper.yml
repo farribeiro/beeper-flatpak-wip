@@ -29,13 +29,7 @@ modules:
       - type: extra-data
         only-arches:
           - x86_64
-        url: https://beeper-desktop.download.beeper.com/builds/Beeper-4.2.808-x86_64.AppImage
-        sha256: aa5e5690a5604222881e434a77cd39c457b3b2fa16fbc76a5f1e8ccdfb3171e3
-        size: 236292417
         filename: Beeper.AppImage
-        x-checker-data:
-          type: rotating-url
-          url: https://api.beeper.com/desktop/download/linux/x64/stable/com.automattic.beeper.desktop
       - type: file
         path: com.beeper.Beeper.metainfo.xml
       - type: file
@@ -46,7 +40,7 @@ modules:
         dest_filename: apply_extra.sh
         commands:
           - chmod +x Beeper.AppImage
-          - ./Beeper.AppImage --appimage-extract
+          - Beeper.AppImage --appimage-extract
           - mv squashfs-root/* .
           - rm -rf Beeper.AppImage squashfs-root
     build-commands:
@@ -54,5 +48,5 @@ modules:
       - install -Dm644 ${FLATPAK_ID}.desktop -t ${FLATPAK_DEST}/share/applications
       - install -Dm644 ${FLATPAK_ID}.metainfo.xml -t ${FLATPAK_DEST}/share/metainfo/
       - install -Dm644 ${FLATPAK_ID}.png -t ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps
-      - install -Dm755 beepertexts -t ${FLATPAK_DEST}/bin 
+      - install -Dm755 beepertexts -t ${FLATPAK_DEST}/bin
       - ln -s ${FLATPAK_DEST}/bin/beepertexts ${FLATPAK_DEST}/bin/beeper
