@@ -4,7 +4,9 @@ runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
 base: org.electronjs.Electron2.BaseApp
 base-version: '25.08'
-command: beepertexts
+rename-icon: beepertexts
+rename-desktop: beepertexts
+command: beeper
 finish-args:
   - --device=dri
   - --filesystem=xdg-download
@@ -22,31 +24,26 @@ modules:
   - name: beepertexts
     buildsystem: simple
     sources:
-      - type: script
-        dest-filename: beepertexts
-        commands:
-          - zypak-wrapper /app/extra/beepertexts/beepertexts "$@"
-      - type: extra-data
-        only-arches:
-          - x86_64
-        filename: Beeper.AppImage
+      - type: file
+        path: Beeper.AppImage
       - type: file
         path: com.beeper.Beeper.metainfo.xml
-      - type: file
-        path: icons/com.beeper.Beeper.png
-      - type: file
-        path: com.beeper.Beeper.desktop
       - type: script
-        dest_filename: apply_extra.sh
+        dest-filename: beeper
         commands:
-          - chmod +x Beeper.AppImage
-          - Beeper.AppImage --appimage-extract
-          - mv squashfs-root/* .
-          - rm -rf Beeper.AppImage squashfs-root
+          - zypak-wrapper /app/extra/beepertexts/beepertexts "$@"
     build-commands:
-      - install -Dm755 apply_extra.sh ${FLATPAK_DEST}/bin/apply_extra
-      - install -Dm644 ${FLATPAK_ID}.desktop -t ${FLATPAK_DEST}/share/applications
-      - install -Dm644 ${FLATPAK_ID}.metainfo.xml -t ${FLATPAK_DEST}/share/metainfo/
-      - install -Dm644 ${FLATPAK_ID}.png -t ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps
+      - chmod +x Beeper.AppImage
+      - ./Beeper.AppImage --appimage-extract
+      - ls
+      - desktop-file-edit --set-icon ${FLATPAK_ID} --set-key Exec --set-value 'beeper
+              %u' squashfs-root/beepertexts.desktop
+      - cp -a squashfs-root/* ${FLATPAK_DEST}/
+      - mkdir -p ${FLATPAK_DEST}/share/icons/hicolor
+      #- cp -r squashfs-root/usr/share/icons/hicolor/* ${FLATPAK_DEST}/share/icons/hicolor
+      - rm -rf Beeper.AppImage squashfs-root
+      - install -Dm644 squashfs-root/beepertexts.desktop -t ${FLATPAK_DEST}/share/applications
+      - install -Dm644 squashfs-root/${FLATPAK_ID}.metainfo.xml -t ${FLATPAK_DEST}/share/metainfo/
+      - install -Dm644 squashfs-root/beepertexts.png -t ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps
       - install -Dm755 beepertexts -t ${FLATPAK_DEST}/bin
       - ln -s ${FLATPAK_DEST}/bin/beepertexts ${FLATPAK_DEST}/bin/beeper
