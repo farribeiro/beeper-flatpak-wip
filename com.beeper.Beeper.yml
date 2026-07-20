@@ -19,7 +19,6 @@ finish-args:
 modules:
   - shared-modules/libappindicator/libappindicator-gtk3-12.10.json
   - shared-modules/libsecret/libsecret.json
-  - shared-modules/squashfs-tools/squashfs-tools.json
   - name: beepertexts
     buildsystem: simple
     sources:
@@ -47,8 +46,7 @@ modules:
         dest_filename: apply_extra.sh
         commands:
           - chmod +x Beeper.AppImage
-          - "offset=$(grep -aob -- 'hsqs' Beeper.AppImage | tail -n1 | cut -d: -f1)"
-          - unsquashfs -quiet -no-progress -o $offset Beeper.AppImage
+          - Beeper.AppImage --appimage-extract
           - mv squashfs-root/* .
           - rm -rf Beeper.AppImage squashfs-root
     build-commands:
