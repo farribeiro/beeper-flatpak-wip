@@ -46,7 +46,7 @@ modules:
         dest_filename: apply_extra.sh
         commands:
           - chmod +x Beeper.AppImage
-          - Beeper.AppImage --appimage-extract
+          - ./Beeper.AppImage --appimage-extract
           - mv squashfs-root/* .
           - rm -rf Beeper.AppImage squashfs-root
     build-commands:
